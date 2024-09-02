@@ -136,7 +136,7 @@ if __name__ == "__main__":
     params = [0.0] * (len(X_train[0]) + 1)  # Inicializar parámetros con ceros, incluyendo el bias
 
     # Entrenamiento del modelo
-    params_finales, min_vals, range_vals = logistic_regression(params, X_train, y_train, 5000, learning_rate)
+    params_finales, min_vals, range_vals = logistic_regression(params, X_train, y_train, 50000, learning_rate)
 
     # Evaluación final del modelo en el conjunto de prueba
     evaluate_model(params_finales, X_test, y_test, min_vals, range_vals)
