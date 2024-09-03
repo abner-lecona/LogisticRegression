@@ -1,3 +1,7 @@
+# Abner Maximiliano Lecona Nieves
+# A01753179
+# Regresion Logistica
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,7 +51,7 @@ def gradient_descent(params, samples, learn_rate, valor_y):
         avance[j] = params[j] - (learn_rate / m) * sum_error
     return avance
 
-# Función de costo logístico
+# Función de costo 
 def logistic_cost(params, samples, valor_y):
     m = len(samples)
     total_cost = 0
@@ -126,14 +130,14 @@ if __name__ == "__main__":
     val_data = pd.read_csv('validation.csv')
     test_data = pd.read_csv('test.csv')
 
-    # Extraer características y etiquetas de entrenamiento y validación
+    # Extraer características para entrenamiento y validación
     X_train = train_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
     y_train = train_data['Pasar_examen'].values
 
     X_val = val_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
     y_val = val_data['Pasar_examen'].values
 
-    # Extraer solo características del conjunto de prueba (sin etiquetas)
+    # Extraer solo características del conjunto de prueba
     X_test = test_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
 
     # Parámetros de entrenamiento
