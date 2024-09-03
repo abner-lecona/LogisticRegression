@@ -24,39 +24,43 @@ def normalizacion(samples):
 
 def normalizar_nuevos_datos(nuevos_samples, min_vals, range_vals):
     nuevos_samples = np.array(nuevos_samples, dtype=float)
-    min_vals = np.array(min_vals, dtype=float)
-    range_vals = np.array(range_vals, dtype=float)
     normalizados = (nuevos_samples - min_vals) / range_vals
     return normalizados.tolist()
 
 # Función para predecir
 def predict(features, weights, min_vals, range_vals):
+    # Normalizar características nuevas (excluyendo el término de sesgo)
     features = normalizar_nuevos_datos([features], min_vals, range_vals)[0]
-    if len(features) != len(weights):
-        features = [1] + features  # Agregar el Bias si es necesario
+    features = [1] + features  # Añadir el término de sesgo (bias)
     prob = hipotesis(weights, features)
     return 1 if prob >= 0.5 else 0
 
 # Función de descenso de gradiente
-def gradient_descent(params, samples, learning_rate, valor_y):
+def gradient_descent(params, samples, learn_rate, valor_y):
     m = len(samples)
-    for i in range(m):
-        error = hipotesis(params, samples[i]) - valor_y[i]
-        for j in range(len(params)):
-            params[j] -= learning_rate * error * samples[i][j]
-    return params
+    avance = np.array(params, dtype=float)
+    for j in range(len(params)):
+        sum_error = 0
+        for i in range(m):
+            error = hipotesis(params, samples[i]) - valor_y[i]
+            sum_error += error * samples[i][j]
+        avance[j] = params[j] - (learn_rate / m) * sum_error
+    return avance
 
 # Función de costo logístico
 def logistic_cost(params, samples, valor_y):
     m = len(samples)
     total_cost = 0
     for i in range(m):
-        h = hipotesis(params, samples[i])
-        total_cost += -valor_y[i] * np.log(h) - (1 - valor_y[i]) * np.log(1 - h)
+        prediction = hipotesis(params, samples[i])
+        # Clip para asegurar que prediction no sea 0 ni 1
+        prediction = np.clip(prediction, 1e-10, 1 - 1e-10)
+        total_cost += -valor_y[i] * np.log(prediction) - (1 - valor_y[i]) * np.log(1 - prediction)
     return total_cost / m
 
 # Función de entrenamiento de regresión logística
 def logistic_regression(params, samples, valor_y, num_epochs, learning_rate):
+    # Añadir el término de sesgo (bias) como una característica adicional con valor 1
     for i in range(len(samples)):
         samples[i] = [1] + samples[i]
 
@@ -122,24 +126,36 @@ if __name__ == "__main__":
     val_data = pd.read_csv('validation.csv')
     test_data = pd.read_csv('test.csv')
 
-    # Extraer características y etiquetas
+    # Extraer características y etiquetas de entrenamiento y validación
     X_train = train_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
-    y_train = train_data['Pasar_examen'].values.tolist()
+    y_train = train_data['Pasar_examen'].values
 
     X_val = val_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
-    y_val = val_data['Pasar_examen'].values.tolist()
+    y_val = val_data['Pasar_examen'].values
 
+    # Extraer solo características del conjunto de prueba (sin etiquetas)
     X_test = test_data[['Horas_estudio', 'Asistencia_clases', 'Calificaciones_anteriores']].values.tolist()
-    y_test = test_data['Pasar_examen'].values.tolist()
 
+    # Parámetros de entrenamiento
     learning_rate = 0.01
     params = [0.0] * (len(X_train[0]) + 1)  # Inicializar parámetros con ceros, incluyendo el bias
 
     # Entrenamiento del modelo
     params_finales, min_vals, range_vals = logistic_regression(params, X_train, y_train, 50000, learning_rate)
-
-    # Evaluación final del modelo en el conjunto de prueba
-    evaluate_model(params_finales, X_test, y_test, min_vals, range_vals)
+    print("se realizo el entrenamiento")
 
     # Evaluación del modelo en el conjunto de validación
+    print("Evaluación en el conjunto de validación:")
     evaluate_model(params_finales, X_val, y_val, min_vals, range_vals)
+    print("Se realizo la evaluacion")
+
+
+    # Realizar predicciones en el conjunto de prueba y mostrar los resultados
+    print("\nPredicciones para el conjunto de prueba:")
+    for i, sample in enumerate(X_test):
+        prediccion = predict(sample, params_finales, min_vals, range_vals)
+        estado = "Aprobado" if prediccion == 1 else "Reprobado"
+        print(f"Registro {i + 1}: Predicción = {estado}")
+    
+    print("Se realizaron todas las operaciones")
+
